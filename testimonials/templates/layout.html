@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% if title %}
+        <title>{{title}}</title>
+    {% else %}
+        <title>Testimonials</title>
+    {% endif %}
+
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style.css')}}"/>
+    <script src="{{url_for('static', filename='script.js')}}" defer></script>
+</head>
+<body>
+    <h1>Caleb's Testimonials</h1>
+    {% block content %}
+
+    {% endblock %}
+</body>
+</html>
