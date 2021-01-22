@@ -1,5 +1,5 @@
 from testimonials import app, db
-from flask import render_template, abort, jsonify
+from flask import render_template, abort, jsonify, request
 from testimonials.models import Testimonial
 
 
@@ -7,6 +7,26 @@ from testimonials.models import Testimonial
 def get_testimonials():
     testimonials = Testimonial.query.all()
     return jsonify({'testimonials': testimonials})
+
+
+@app.route('/api/testimonials/<id>')
+def get_testimonial(id):
+    testimonial = Testimonial.query.get(id)
+
+    if testimonial:
+        return jsonify(testimonial)
+
+    return {}
+
+
+@app.route('/api/testimonials', methods=['POST'])
+def add_testimonial():
+    data = request.get_json()
+    testimonial = Testimonial(name=data.get(
+        'name'), testimonial=data.get('testimonial'))
+    db.session.add(testimonial)
+    db.session.commit()
+    return jsonify(testimonial.id)
 
 
 testimonials = [
