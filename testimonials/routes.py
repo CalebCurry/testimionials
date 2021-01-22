@@ -1,6 +1,40 @@
-from testimonials import app, db
+from testimonials import app, db, bcrypt, jwt
 from flask import render_template, abort, jsonify, request
-from testimonials.models import Testimonial
+from testimonials.models import Testimonial, User
+from flask_jwt_extended import jwt_required, create_access_token
+
+
+@app.route('/api/create_user', methods=['POST'])
+def create_user():
+    data = request.get_json()
+    username = data.get('username')
+    password = bcrypt.generate_password_hash(
+        data.get('password')).decode('utf-8')
+
+    user = User(username=username, password=password)
+    db.session.add(user)
+    db.session.commit()
+
+    return jsonify(user.id)
+
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    user = User.query.filter_by(username=username).first()
+
+    if not user:
+        return {'error': 'username or password incorrect'}, 400
+
+    if bcrypt.check_password_hash(user.password, password):
+        access_token = create_access_token(identity={'username': username})
+        return {'access_token': access_token}
+
+    else:
+        return {'error': 'username or password incorrect'}, 400
 
 
 @app.route('/api/testimonials')
@@ -30,6 +64,7 @@ def add_testimonial():
 
 
 @app.route('/api/testimonials/<id>', methods=['PUT', 'POST'])
+@jwt_required
 def update_testimonial(id):
     testimonial = Testimonial.query.get(id)
 
@@ -43,6 +78,7 @@ def update_testimonial(id):
 
 
 @app.route('/api/testimonials/<id>', methods=['DELETE'])
+@jwt_required
 def delete_testimonial(id):
     testimonial = Testimonial.query.get(id)
 
